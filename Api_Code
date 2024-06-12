@@ -1,0 +1,113 @@
+#app.py
+
+from flask import Flask, render_template, jsonify
+import requests
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/quote')
+def quote():
+    response = requests.get('https://api.quotable.io/random')
+    data = response.json()
+    quote_data = {
+        "content": data["content"],
+        "author": data["author"]
+    }
+    return jsonify(quote_data)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+#index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор случайных цитат</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Генератор случайных цитат</h1>
+        <div id="quote-container">
+            <p id="quote"></p>
+            <p id="author"></p>
+        </div>
+        <button id="new-quote">Получить новую цитату</button>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
+
+#script.js
+
+document.addEventListener('DOMContentLoaded', () => {
+    const quoteText = document.getElementById('quote');
+    const authorText = document.getElementById('author');
+    const newQuoteButton = document.getElementById('new-quote');
+
+    async function getQuote() {
+        try {
+            const response = await fetch('/quote');
+            const data = await response.json();
+            quoteText.textContent = `"${data.content}"`;
+            authorText.textContent = `- ${data.author}`;
+        } catch (error) {
+            quoteText.textContent = 'An error occurred, please try again later.';
+            authorText.textContent = '';
+            console.error('Error fetching quote:', error);
+        }
+    }
+
+#styles.css
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f4f9;
+    margin: 0;
+}
+
+.container {
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#quote-container {
+    margin: 20px 0;
+}
+
+#quote {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+#author {
+    color: #555;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    background-color: #007BFF;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
